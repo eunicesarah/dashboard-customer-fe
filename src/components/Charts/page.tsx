@@ -2,6 +2,7 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import ChartOne from "@/components/Charts/ChartOne";
 import ChartTwo from "@/components/Charts/ChartTwo";
+import ChartFour from "@/components/Charts/ChartFour";
 import dynamic from "next/dynamic";
 import React from "react";
 
@@ -19,6 +20,7 @@ const Chart: React.FC = () => {
         <ChartTwo />
         <ChartThree />
       </div>
+        <ChartFour/>
     </>
   );
 };
