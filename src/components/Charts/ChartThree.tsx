@@ -74,7 +74,7 @@ const ChartThree: React.FC = () => {
             <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-primary"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
               <span> Negative </span>
-              <span> 79.8% </span>
+              <span> 6% </span>
             </p>
           </div>
         </div>
