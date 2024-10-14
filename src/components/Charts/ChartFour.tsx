@@ -7,78 +7,89 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
-    ssr: false,
+  ssr: false,
 });
 
 type ChartData = {
-    word: string;
-    frequency: number;
+  word: string;
+  frequency: number;
 };
 
 const ChartFour: React.FC = () => {
-    const [series, setSeries] = useState<ApexAxisChartSeries | ApexNonAxisChartSeries>([]);
-    const [categories, setCategories] = useState<string[]>([]);
+  const [series, setSeries] = useState<
+    ApexAxisChartSeries | ApexNonAxisChartSeries
+  >([]);
 
-    const fetchWordCloud = async () => {
-        try {
-            const response = await axios.get('https://dashboard-customer-be-1.vercel.app/api/word-cloud'); // Use the full URL to the backend
-            const data: ChartData[] = response.data;
+  const [categories, setCategories] = useState<string[]>([]);
 
-            const transformedSeries = [{
-                name: "Frequency",
-                data: data.map(item => item.frequency),
-            }];
+  const fetchWordCloud = async () => {
+    try {
+      const response = await axios.get(
+        "https://dashboard-customer-be-1.vercel.app/api/word-cloud",
+      );
+      const data: ChartData[] = response.data;
 
-            const words = data.map(item => item.word);
-            setCategories(words); // Set the categories
+      const topFiveData = data
+        .sort((a, b) => b.frequency - a.frequency)
+        .slice(0, 5);
 
-            console.log(transformedSeries);
-            setSeries(transformedSeries);
-        } catch (error) {
-            console.error("Error fetching word cloud:", error);
-        }
-    };
-
-    useEffect(() => {
-        fetchWordCloud();
-    }, []);
-
-    const options: ApexOptions = {
-        chart: {
-            type: "bar",
+      const transformedSeries = [
+        {
+          name: "Frequency",
+          data: topFiveData.map((item) => item.frequency),
         },
-        plotOptions: {
-            bar: {
-                horizontal: false,
-            },
-        },
-        xaxis: {
-            categories: categories, // Use the state variable here
-        },
-    };
+      ];
 
-    return (
-        <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
-            <div className="mb-4 justify-between gap-4 sm:flex">
-                <div>
-                    <h4 className="text-xl font-semibold text-black dark:text-white">
-                        Word Cloud
-                    </h4>
-                </div>
-            </div>
+      const words = topFiveData.map((item) => item.word);
+      setCategories(words); // Set the categories
 
-            <div>
-                <div id="chartTwo" className="-mb-9 -ml-5">
-                    <ReactApexChart
-                        options={options}
-                        series={series}
-                        type="bar"
-                        width={"100%"}
-                    />
-                </div>
-            </div>
+      console.log(transformedSeries);
+      setSeries(transformedSeries);
+    } catch (error) {
+      console.error("Error fetching word cloud:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchWordCloud();
+  }, []);
+
+  const options: ApexOptions = {
+    chart: {
+      type: "bar",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+      },
+    },
+    xaxis: {
+      categories: categories, // Use the state variable here
+    },
+  };
+
+  return (
+    <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
+      <div className="mb-4 justify-between gap-4 sm:flex">
+        <div>
+          <h4 className="text-xl font-semibold text-black dark:text-white">
+            Top 5 Fruequency Words
+          </h4>
         </div>
-    );
+      </div>
+
+      <div>
+        <div id="chartTwo" className="-mb-9 -ml-5">
+          <ReactApexChart
+            options={options}
+            series={series}
+            type="bar"
+            width={"100%"}
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ChartFour;
