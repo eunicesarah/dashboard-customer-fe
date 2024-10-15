@@ -1,71 +1,60 @@
+"use client";
+
 import { ApexOptions } from "apexcharts";
-import React, { useState, useEffect } from "react";
-import ReactApexChart from "react-apexcharts";
+import React from "react";
+import dynamic from "next/dynamic";
 import axios from "axios";
-import { Percentages } from "../../types/Count";
+import { useState, useEffect } from "react";
+import { Percentages } from "../../types/Count"; // Import the Percentages type
 
-const options: ApexOptions = {
-  chart: {
-    fontFamily: "Satoshi, sans-serif",
-    type: "donut",
-  },
-  colors: ["#3C50E0", "#6577F3", "#8FD0EF", "#0FADCF"],
-  labels: ["Positive", "Negative", "Neutral"],
-  legend: {
-    show: false,
-    position: "bottom",
-  },
-
-  plotOptions: {
-    pie: {
-      donut: {
-        size: "65%",
-        background: "transparent",
-      },
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  responsive: [
-    {
-      breakpoint: 2600,
-      options: {
-        chart: {
-          width: 380,
-        },
-      },
-    },
-    {
-      breakpoint: 640,
-      options: {
-        chart: {
-          width: 200,
-        },
-      },
-    },
-  ],
-};
+const ReactApexChart = dynamic(() => import("react-apexcharts"), {
+  ssr: false,
+});
 
 const ChartThree: React.FC = () => {
-  const [series, setSeries] = useState<number[]>([]);
+  const [series, setSeries] = useState<ApexNonAxisChartSeries>([]);
 
-  const fetchPercentages = async () => {
+  const [categories, setCategories] = useState<string[]>([]);
+
+  const fetchSentimentData = async () => {
     try {
-      const response = await axios.get<Percentages>(
+      const response = await axios.get(
         "https://dashboard-customer-be-1.vercel.app/api/sentiment-analyst/getPercentage",
       );
-      const data = response.data;
-      console.log(response.data);
-      setSeries([data.positive, data.negative, data.neutral]);
+      const data: Percentages = response.data.percentages;
+
+      const transformedSeries = [
+        data.positive, data.negative, data.neutral,
+      ];
+
+      const categoriesLabels = ["Positive", "Negative", "Neutral"]; // Define the categories labels
+      setCategories(categoriesLabels); // Set the categories
+
+      console.log(transformedSeries);
+      setSeries(transformedSeries);
     } catch (error) {
-      console.error("Error fetching percentages:", error);
+      console.error("Error fetching sentiment data:", error);
     }
   };
 
   useEffect(() => {
-    fetchPercentages();
+    fetchSentimentData();
   }, []);
+
+  const options: ApexOptions = {
+    chart: {
+      type: "donut",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+      },
+    },
+    xaxis: {
+      categories: categories, // Use the state variable here
+    },
+    labels: categories, // Add labels for the donut chart
+  };
 
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-5">
@@ -78,38 +67,18 @@ const ChartThree: React.FC = () => {
       </div>
 
       <div className="mb-2">
-        <div id="chartThree" className="mx-auto flex justify-center">
-          <ReactApexChart options={options} series={series} type="donut" />
-        </div>
-      </div>
-
-      <div className="-mx-8 flex flex-wrap items-center justify-center gap-y-3">
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-primary"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Negative </span>
-              <span> {series[1]}% </span>
-            </p>
-          </div>
-        </div>
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#6577F3]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Neutral</span>
-              <span> {series[2]}% </span>
-            </p>
-          </div>
-        </div>
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#8FD0EF]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Positive </span>
-              <span> {series[0]}% </span>
-            </p>
-          </div>
+        <div
+          id="chartThree"
+          className="mx-auto flex justify-center"
+          style={{ width: "100%", height: "100%" }}
+        >
+          <ReactApexChart
+            options={options}
+            series={series}
+            type="donut"
+            height={800} // Atur height agar chart memiliki ruang cukup
+            width={400} // Pastikan lebar penuh
+          />
         </div>
       </div>
     </div>
