@@ -4,24 +4,35 @@ import { ApexOptions } from "apexcharts";
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import axios from "axios";
-import { Percentages } from "../../types/Count"; // Import the Percentages type
 
+// Dynamic import to prevent SSR issues with ApexCharts
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-const ChartTwo: React.FC = () => {
-  const [series, setSeries] = useState<number[]>([]);
+type SentimentData = {
+  positive: number;
+  negative: number;
+  neutral: number;
+};
 
+const ChartTwo: React.FC = () => {
+  const [series, setSeries] = useState<{ name: string; data: number[] }[]>([]); // Fixed type
+
+  // Fetch sentiment data from API
   const fetchSentimentData = async () => {
     try {
-      const response = await axios.get(
+      const response = await axios.get<SentimentData>(
         "https://dashboard-customer-be-1.vercel.app/api/sentiment-analyst/getCount",
       );
-      const data: Percentages = response.data;
+      const data = response.data;
 
+      // Transform the data to match ApexChart's expected series format
       const transformedSeries = [
-        data.positive, data.negative, data.neutral,
+        {
+          name: "Sentiment",
+          data: [data.positive, data.negative, data.neutral], // Pass the correct data format
+        },
       ];
 
       setSeries(transformedSeries);
@@ -34,69 +45,22 @@ const ChartTwo: React.FC = () => {
     fetchSentimentData();
   }, []);
 
+  // ApexChart options
   const options: ApexOptions = {
-    colors: ["#3C50E0", "#FF5733", "#80CAEE"],
+    colors: ["#3C50E0", "#FF5733", "#80CAEE"], // Define the colors for the bars
     chart: {
       fontFamily: "Satoshi, sans-serif",
-      type: "bar",
-      height: 335,
-      stacked: false, // Ubah ke false agar bar tidak menumpuk
-      toolbar: {
-        show: false,
-      },
-      zoom: {
-        enabled: false,
-      },
+      type: "bar", // Chart type: bar
     },
-    responsive: [
-      {
-        breakpoint: 1536,
-        options: {
-          plotOptions: {
-            bar: {
-              borderRadius: 0,
-              columnWidth: "25%",
-            },
-          },
-        },
-      },
-    ],
     plotOptions: {
       bar: {
-        horizontal: false,
-        borderRadius: 0,
-        columnWidth: "50%", // Lebar bar 50% untuk setiap kategori
-        borderRadiusApplication: "end",
-        borderRadiusWhenStacked: "last",
+        horizontal: false, // Vertical bars
       },
-    },
-    dataLabels: {
-      enabled: false,
     },
     xaxis: {
-      categories: ["Positive", "Negative", "Neutral"],
+      categories: ["Positive", "Negative", "Neutral"], // Define the categories for the x-axis
     },
-    yaxis: {
-      min: 0,
-      max: 300, // Set maksimal ke 300 agar sesuai dengan request
-      tickAmount: 6, // Bagi skala menjadi 6 bagian
-      labels: {
-        formatter: (val) => `${val}`, // Tambahkan formatter jika ingin custom label
-      },
-    },
-    legend: {
-      position: "top",
-      horizontalAlign: "left",
-      fontFamily: "Satoshi",
-      fontWeight: 500,
-      fontSize: "14px",
-      markers: {
-        radius: 99,
-      },
-    },
-    fill: {
-      opacity: 1,
-    },
+    labels: ["Positive", "Negative", "Neutral"], // Define labels
   };
 
   return (
@@ -113,10 +77,10 @@ const ChartTwo: React.FC = () => {
         <div id="chartTwo" className="-mb-9 -ml-5">
           <ReactApexChart
             options={options}
-            series={series}
+            series={series} // Pass the series here
             type="bar"
             height={350}
-            width={"100%"}
+            width="100%"
           />
         </div>
       </div>
